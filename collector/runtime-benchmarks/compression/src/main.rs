@@ -20,8 +20,7 @@ fn compress(data: &str) -> Vec<u8> {
 
 fn main() {
     let sherlock_text = String::from_utf8(decompress_file(TEXT_SHERLOCK)).expect("Invalid UTF-8");
-    // Decompression is much faster than compression, so inflate the data a bit
-    let compressed_text = compress(&sherlock_text.repeat(20));
+    let compressed_text: &[u8] = include_bytes!("../../data/sherlock.recompressed.br");
 
     run_benchmark_group(|group| {
         group.register_benchmark("brotli-compress", || {
@@ -43,7 +42,7 @@ fn main() {
         group.register_benchmark("brotli-decompress", || {
             let mut buffer: Vec<u8> = Vec::with_capacity(TEXT_SHERLOCK.len() * 2);
             || {
-                let mut reader = brotli::Decompressor::new(compressed_text.as_slice(), 4096);
+                let mut reader = brotli::Decompressor::new(compressed_text, 4096);
                 std::io::copy(&mut reader, &mut buffer).unwrap();
                 buffer
             }
